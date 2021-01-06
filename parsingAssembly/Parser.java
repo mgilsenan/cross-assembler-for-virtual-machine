@@ -6,7 +6,7 @@ import lexicalAnalyzer.*;
 
 public class Parser implements IParser {
     private int           token;
-    private ILexer        lexer;
+    //private ILexer        lexer;
     private Lexer           lxr;
     private ISourceFile   sourceFile;
     private IReportable   errorReporter;

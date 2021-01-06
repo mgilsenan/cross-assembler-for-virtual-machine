@@ -1,10 +1,7 @@
 package lexicalAnalyzer;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
 import SymbolTable.*;
 import errorHandling.ErrorMessage;
 
@@ -19,8 +16,6 @@ public class Lexer implements Opcode {
     private ISymbolTable keywordTable;
     private Token token;
     private boolean mnemFound = false;
-
-    Map<String, String> keywords = new HashMap<>();
 
     private ArrayList<String> tokenType = new ArrayList<>();
 
