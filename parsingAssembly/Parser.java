@@ -1,138 +1,66 @@
 package parsingAssembly;
-
+import java.util.HashMap;
 import SymbolTable.*;
 import errorHandling.ErrorMessage;
 import lexicalAnalyzer.*;
 
 public class Parser implements IParser {
-    private int           token;
-    //private ILexer        lexer;
-    private Lexer           lxr;
-    private ISourceFile   sourceFile;
-    private IReportable   errorReporter;
-    private ISymbolTable  table;
-    private ISymbolTable  keywordTable;
+    private Lexer lexer;
+    private IReportable errorReporter;
+    private ISymbolTable table;
     private Token tokenObj;
-
-    public void LineStatement(Label label, Instruction inst, Comment comment) {
-    }
+    //private IntermediateRepresentation irList;
 
     public Parser(AssemblerFactory factory) {
-        this.lxr = factory.getLexer();
-        this.sourceFile = factory.getSourceFile();
+        this.lexer = factory.getLexer();
         this.errorReporter = factory.getErrorReporter();
         this.table = factory.getSymbolTable();
-        //nextToken(); // prime
-        //address = 0;
+        //irList = new IntermediateRepresentation();
     }
-    // Record the error: <t> expected, found <token> at <token>.position
-    // protected void expect(int t) {
-    //     if (t != token) {
-    //         String expected = Lexer.getTokenName(t);
-    //         errorReporter.record( _Error.create( expected+" expected", Lexer.getPosition()) );
-    //     }
-    //     nextToken();
-    // }
-    // protected void expect(String t) {
-    //     errorReporter.record( _Error.create(t+" expected", Lexer.getPosition()) );
-    // }
-    // protected void error(String t) {
-    //     errorReporter.record( _Error.create(t, Lexer.getPosition()) );
-    // }
 
-    // private class SyntaxError extends Exception {}
-
-    // -------------------------------------------------------------------
-    // An assembly unit is zero or more line statement(s).
-    //
-    // AssemblyUnit = { LineStmt } EOF .
-    // -------------------------------------------------------------------
     public AssemblyUnit parse() {
         System.out.println("Parsing a AssemblyUnit...");
 
         LineStatmentList seq = new LineStatmentList();
         parseLineStatement();
-        while (!lxr.EOF) {
+        while (!Lexer.EOF) {
             seq.add(parseLineStatement());
         }
         return new AssemblyUnit(seq);
     }
-    //---------------------------------------------------------------------------------
-    private boolean parseInherent(Mnemonic mnemonic, Operand operand) {
-        // your code...
-
-        String temp = table.getMnemType(mnemonic.getValue());
-        System.out.println(temp);
-        if(table.getMnemType(mnemonic.getValue()).contains("inherent")){
-            if(operand == null){
-                return true;
-            }
-            else {
-                ErrorMessage err = new ErrorMessage(new Position(tokenObj.getLine(), tokenObj.getPos()),
-                        "\"Inherent should not have an operand\" ");
-                return false;
-            }
-        }
-        if(table.getMnemType(mnemonic.getValue()).equals("null")){
-            ErrorMessage err = new ErrorMessage(new Position(tokenObj.getLine(), tokenObj.getPos()),
-                    "\"SYNTAX ERROR\" ");
-            return false;
-        }
-        return false;
+    
+    private Instruction parseInherent(Mnemonic mnemonic, Operand operand) {
+        return new Instruction(mnemonic,null,table.lookupMnemonic(mnemonic.getValue()),1);
     }
-    //---------------------------------------------------------------------------------
-    private boolean parseImmediate(Mnemonic mnemonic, Operand operand) {
-         //your code...
-        //System.out.println(operand.getValue()); //
-        if(table.getMnemType(mnemonic.getValue()).contains("immediate")){
-            if(operand != null){
-                return true;
-            }
-            
-        }
-        return false;
+    
+    private Instruction parseImmediate(Mnemonic mnemonic, Operand operand) {
+        return new Instruction(mnemonic,operand,table.lookupMnemonic(mnemonic.getValue()),2);
     }
-    //---------------------------------------------------------------------------------
-    private boolean parseRelative(Mnemonic mnemonic, Operand operand) {
-        // your code...
-        if(table.getMnemType(mnemonic.getValue()).contains("relative")){
-            if(operand != null){
-                return true;
-            }
-            else {
-                ErrorMessage err = new ErrorMessage(new Position(tokenObj.getLine(), tokenObj.getPos()),
-                        "\"Relative should have an operand\" ");
-                return false;
-            }
-        }
-        return false;
+    
+    private Instruction parseRelative(Mnemonic mnemonic, Operand operand) {
+        return new Instruction(mnemonic,operand,table.lookupMnemonic(mnemonic.getValue()),3);
     }
-    // -------------------------------------------------------------------
-    // A line statement:
-    //   - could be empty (only a EOL);
-    //   - could have a single comment start at BOL or after a label, label/inst, or label/dir;
-    //   - could have a label only, etc.
-    //
-    // LineStatement = [Label] [Instruction | Directive ] [Comment] EOL .
-    //
+    
+    int i = 1;
     public LineStatement parseLineStatement() {
         Label        label = null;
         Instruction instruction = null;
         Mnemonic  mnemonic = null;
         Operand     operand= null;
         Comment      comment = null;
+        HashMap<String, Integer> inherentMnemonics = table.getInherentMnemonics();
+        HashMap<String, Integer> immediateMnemonics = table.getImmediateMnemonics();
+        HashMap<String, Integer> relativeMnemonics = table.getRelativeMnemonics();
+        String mnemonicToken = null;
 
-        Directive   directive = null;
-        Digit digit = null;
+        Lexer.EOL = false;
 
-        lxr.EOL = false;
-
-        //System.out.println("Parsing a Line Statement...");
         System.out.println();
-        while(!lxr.EOL) {
-            tokenObj = lxr.getToken();
+        while(!Lexer.EOL) {
+            tokenObj = lexer.getToken();
             int tokenInt = tokenObj.getTokenInt();
             String tokenType = tokenObj.getValue();
+            
             switch (tokenInt) {
                 case 1://label
                      if(Character.isUpperCase(tokenType.charAt(0))){
@@ -143,6 +71,7 @@ public class Parser implements IParser {
                 case 2: //Mnemonic
                     System.out.print("This is a Mnemonic : " );
                     mnemonic = new Mnemonic(tokenType);
+                    mnemonicToken = tokenType;
                     break;
                 case 3://Operand
                     if(Character.isUpperCase(tokenType.charAt(0)) || tokenType.matches("^[0-9]*$")){
@@ -160,60 +89,61 @@ public class Parser implements IParser {
                         comment = new Comment(tokenType);
                     }
                     break;
-               ///case 5://directive
-               ///    if(tokenType.contains(".cstring")){
-               ///        System.out.print("This is a Directive : " );
-               ///        directive = new Directive(tokenType);
-               ///    }
-               ///    break;
-                //case 6://number
-                //    if (tokenType.contains("[a-zA-Z]+") == false) {
-                //        System.out.print("This is a number : " );
-                //        digit = new Digit(tokenType);
-                //    }
-                //    break;
-                //case 7:  tokenType = lxr.getToken().getValue();
-                ////label = new Label(tokenType);
-                //    break;
                 default:
                     break;
             }
             System.out.println("\t\t\t"  + tokenType);
-            //System.out.println();
         }
+        
+        
+        // if(mnemonic != null){
+        //     System.out.print("line " + i + " ");
+        //     i++;
+        //     if(inherentMnemonics.containsKey(mnemonicToken)){
+        //         Instruction parseInherent = parseInherent(mnemonic, null);
+        //         String hexString = Integer.toHexString(parseInherent.getHexInt());
+        //         String mnemonicStr = parseInherent.getMnemonicStr();
+        //         System.out.println(hexString+" "+mnemonicStr);
+        //         //irList.addMachineCode(hexString);
+        //         //irList.addAssemblyCode(mnemonicStr);
+        //     }
+                
+        //     if(immediateMnemonics.containsKey(mnemonicToken)){
+        //         Instruction parseImmediate = parseImmediate(mnemonic, operand);//immediate instruction
+        //         //System.out.println(parseImmediate.getMnemonicStr()+"*************"+Integer.toHexString(parseImmediate.getHexInt())+"*********"+parseImmediate.getOperand());
+        //         if(parseImmediate.getOperand().matches("-?(0|[1-9]\\d*)")){
+        //             int hexInt = parseImmediate.getHexInt() + parseImmediate.getIntOperand();
+        //             String hexString = Integer.toHexString(hexInt);
+        //             String instructionString = hexString + " " + parseImmediate.getMnemonicStr() + " " + parseImmediate.getOperand();
+        //             System.out.println(instructionString);
+        //            // irList.addMachineCode(hexString);
+        //            // irList.addAssemblyCode(instructionString);
+        //         }
+        //         else{
+        //             // int hexInt = parseImmediate.getHexInt() + parseImmediate.getIntOperand();
+        //              String hexString = Integer.toHexString(parseImmediate.getHexInt());
+        //              String instructionString = hexString + " " + parseImmediate.getMnemonicStr() + " " + parseImmediate.getOperand();
+        //              System.out.println(instructionString);
+        //             // irList.addMachineCode(hexString);
+        //             // irList.addAssemblyCode(instructionString);
+        //         }
+        //     }
+              
+        //     // if(relativeMnemonics.containsKey(mnemonicToken)){
+        //     //     Instruction parseRelative = parseRelative(mnemonic, operand);
+        //     //     int hexInt = parseRelative.getHexInt();
+        //     //     String mnemonicStr = parseRelative.getMnemonicStr();
+        //     //     int intOperand = parseRelative.getIntOperand();
+        //     //     System.out.println(hexInt+" "+mnemonicStr+" "+intOperand);
+        //     // }
 
+        //     //if a token has a space do nothing
 
-        if(mnemonic != null){
-            //System.out.println(mnemonic.getValue());
-            boolean inherent = parseInherent(mnemonic,operand);
-            boolean immediate = parseImmediate(mnemonic,operand);
-            boolean relative = parseRelative(mnemonic,operand);
-
-            if(inherent){
-                instruction = new Instruction(mnemonic,null,table.lookupMnemonic(mnemonic.getValue()),1);
-            }
-            else if (immediate){
-                instruction = new Instruction(mnemonic,operand,table.lookupMnemonic(mnemonic.getValue()),2);
-            }
-            else if (relative){
-                instruction = new Instruction(mnemonic,operand,table.lookupMnemonic(mnemonic.getValue()),3);
-            }
-            // else if(!inherent && !immediate && !relative){
-            //     ErrorMessage err = new ErrorMessage(new Position(tokenObj.getLine(), tokenObj.getPos()),
-            //             "\"INSTRUCTION SYNTAX ERROR\" ");
-            //     mnemonic.value = "ERROR ";
-            //     instruction = new Instruction(mnemonic,operand,table.lookupMnemonic(mnemonic.getValue()),4); // flag 4 is when an ERROR occurs
-            // }
-
-        }
-
-
+        // } else {
+        //     //irList.addMachineCode(" ");
+        //     //irList.addAssemblyCode(" ");
+        // }
 
         return new LineStatement(label, instruction, comment);
-        
     }
-
-    //protected void nextToken() {
-    //    token = lxr.getToken();
-    //}
 }

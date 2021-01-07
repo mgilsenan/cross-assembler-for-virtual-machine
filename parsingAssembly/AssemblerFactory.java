@@ -1,7 +1,5 @@
 package parsingAssembly;
-
 import SymbolTable.ISymbolTable;
-import SymbolTable.SymbolTable;
 import lexicalAnalyzer.Lexer;
 
 public class AssemblerFactory {

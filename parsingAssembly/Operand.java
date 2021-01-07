@@ -10,4 +10,8 @@ public class Operand {
     public String getValue() {
         return value;
     }
+
+    public int getIntValue() {
+        return Integer.parseInt(value);
+    }
 }
