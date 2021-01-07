@@ -1,25 +1,19 @@
 package parsingAssembly;
-
 import SymbolTable.ISymbolTable;
 import SymbolTable.SymbolTable;
+import lexicalAnalyzer.InitiateSymbolTable;
 import lexicalAnalyzer.Lexer;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
 class ParserTest {
 
-    void parse() {
-    }
+    private static InitiateSymbolTable initiateSymbolTable;
 
-    void parseLineStatement() {
-    }
-
-    public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException {
 
         FileInputStream srcStream = new FileInputStream(new File("test.asm"));
 
@@ -35,7 +29,9 @@ class ParserTest {
 		}
 		System.out.println(srcString);
 		
-		ISymbolTable st = new SymbolTable();
+        ISymbolTable st = new SymbolTable();
+        initiateSymbolTable = new InitiateSymbolTable(st);
+        initiateSymbolTable.generate();
 		Lexer lxr = new Lexer(srcString, st);
 
         AssemblerFactory f = new AssemblerFactory(lxr,st);

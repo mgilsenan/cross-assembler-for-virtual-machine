@@ -1,5 +1,4 @@
 package lexicalAnalyzer;
-import java.util.ArrayList;
 import SymbolTable.*;
 import errorHandling.ErrorMessage;
 
@@ -7,46 +6,32 @@ public class Lexer implements Opcode {
     public static boolean EOF = false;
     public static boolean EOL = false;
     private int line;
-    private int colPos;
+    private int columnPosition;
     private int incrementalPosition;
-    private char chr;
+    private char srcFileChar;
     public String entireSrcFile;
     private ISymbolTable keywordTable;
 
-    private ArrayList<String> tokenType = new ArrayList<>();
-
     public Lexer(String source, ISymbolTable symbolTable) {
         this.line = 0;
-        this.colPos = 0;
+        this.columnPosition = 0;
         this.incrementalPosition = 0;
         this.entireSrcFile = source;
-        this.chr = this.entireSrcFile.charAt(0);
+        this.srcFileChar = this.entireSrcFile.charAt(0);
         this.keywordTable = symbolTable;
-        initiateSymbolTable(this.keywordTable); //remove refactor to different class
     }
 
-    private void initiateSymbolTable(ISymbolTable keywordTable) {
-        for(int i = 0; i < Opcode.inherentMnemonics.length; i++) {
-            keywordTable.insertMnemonic(Opcode.inherentMnemonics[i], Opcode.inherentOpcodes[i], "inherent");
-            tokenType.add(Opcode.inherentMnemonics[i]);
-        }
-        for(int i= 0; i < Opcode.immediateMnemonics.length; i++){
-            keywordTable.insertMnemonic(Opcode.immediateMnemonics[i], Opcode.immediateOpcodes[i], "immediate");
-            tokenType.add(Opcode.immediateMnemonics[i]);
-        }
-    }
-
-    Token mnemonic(int line, int position){
+    private Token mnemonic(int line, int position){
         int tokenInt;
         String text = "";
        
-        while (Character.isAlphabetic(this.chr) || Character.isDigit(this.chr) || this.chr == '.') {
-            text += this.chr;
+        while (Character.isAlphabetic(this.srcFileChar) || Character.isDigit(this.srcFileChar) || this.srcFileChar == '.') {
+            text += this.srcFileChar;
             getNextChar();
         }
 
         if (text.equals("")) {
-            ErrorMessage err = new ErrorMessage(new Position(line, position), "unrecognized character : " + this.chr);
+            ErrorMessage err = new ErrorMessage(new Position(line, position), "unrecognized character : " + this.srcFileChar);
         }
 
         if (keywordTable.lookupMnemonic(text) != -1) {
@@ -67,18 +52,17 @@ public class Lexer implements Opcode {
         return new Token("", line, position, -1);
     }
 
-    Token label(int line, int position){
+    private Token label(int line, int position){
         int tokenInt;
         String text = "";
         
-        
-        while (Character.isAlphabetic(this.chr) || Character.isDigit(this.chr) || this.chr == '.') {
-            text += this.chr;
+        while (Character.isAlphabetic(this.srcFileChar) || Character.isDigit(this.srcFileChar) || this.srcFileChar == '.') {
+            text += this.srcFileChar;
             getNextChar();
         }
 
         if (text.equals("")) {
-            ErrorMessage err = new ErrorMessage(new Position(line, position), "unrecognized character : " + this.chr);
+            ErrorMessage err = new ErrorMessage(new Position(line, position), "unrecognized character : " + this.srcFileChar);
         }
 
         if(Character.isUpperCase(text.charAt(0)) && position == 0){
@@ -92,15 +76,13 @@ public class Lexer implements Opcode {
         return new Token("", line, position, -1);
     }
 
-    
-
-    Token directive(int line, int pos) {
+    private Token directive(int line, int pos) {
         String text = ".";
 
         getNextChar();
 
-        while (Character.isAlphabetic(this.chr)) {
-            text += this.chr;
+        while (Character.isAlphabetic(this.srcFileChar)) {
+            text += this.srcFileChar;
             getNextChar();
         }
 
@@ -110,31 +92,15 @@ public class Lexer implements Opcode {
             return tkn;
         }
 
-        return new Token("", this.line, this.colPos, 0);
+        return new Token("", this.line, this.columnPosition, 0);
     }
 
-    Token comment(int line, int pos) {
+    private Token comment(int line, int pos) {
         String text = ";";
         getNextChar();
         
-        while (!isEOL(this.chr)) {
-            text += this.chr;
-            getNextChar();
-        }
-
-        int tokenInt = 4;
-
-        Token tkn = new Token(text, line, pos-1, tokenInt);
-
-        return tkn;
-    }
-
-    Token number(int line, int pos) {
-        String text = "";
-        getNextChar();
-
-        while (Character.isDigit(this.chr)) {
-            text += this.chr;
+        while (!isEOL(this.srcFileChar)) {
+            text += this.srcFileChar;
             getNextChar();
         }
 
@@ -145,12 +111,12 @@ public class Lexer implements Opcode {
         return tkn;
     }
     
-    Token operand(int line, int pos) {
+    private Token operand(int line, int pos) {
         String text = "";
         int tokenInt;
 
-        while (Character.isAlphabetic(this.chr) || Character.isDigit(this.chr) || this.chr == '.') {
-            text += this.chr;
+        while (Character.isAlphabetic(this.srcFileChar) || Character.isDigit(this.srcFileChar) || this.srcFileChar == '.') {
+            text += this.srcFileChar;
             getNextChar();
         }
 
@@ -162,14 +128,14 @@ public class Lexer implements Opcode {
     public Token getToken() {
         int curline, curPos;
 
-        while (Character.isWhitespace(this.chr)) {
+        while (Character.isWhitespace(this.srcFileChar)) {
             getNextChar();
         }
 
         curline = this.line;
-        curPos= this.colPos;
+        curPos= this.columnPosition;
         
-        switch (this.chr) {
+        switch (this.srcFileChar) {
             case '.':
               return directive(curline, curPos);
             case ';':
@@ -195,41 +161,41 @@ public class Lexer implements Opcode {
             default:
 
               getNextChar();
-              return new Token("", this.line, this.colPos, -1);//not a token, invalid characters or EOF
+              return new Token("", this.line, this.columnPosition, -1);//not a token, invalid characters or EOF
 
         }
     }
 
-    char getNextChar() {
-        this.colPos++;
+    private char getNextChar() {
+        this.columnPosition++;
         this.incrementalPosition++;
 
         if (this.incrementalPosition >= this.entireSrcFile.length()) {
-            this.chr = '\u0000';//EOF
+            this.srcFileChar = '\u0000';//EOF
             EOF = true;
             EOL = true;
-            return this.chr;
+            return this.srcFileChar;
         }
 
-        this.chr = this.entireSrcFile.charAt(this.incrementalPosition);
-        if (isEOL(this.chr)) {
+        this.srcFileChar = this.entireSrcFile.charAt(this.incrementalPosition);
+        if (isEOL(this.srcFileChar)) {
             
             this.line++;
-            this.colPos = -1; // reset the column position
+            this.columnPosition = -1; // reset the column position
             EOL = true;
         }
 
-        return this.chr;
+        return this.srcFileChar;
     }
 
-    boolean isEOL(char c) {
+    private boolean isEOL(char c) {
 
       if(c == '\n' )
       {
           EOL = true;
           return true;
       }
-      
+
       else return false;
     }
 
