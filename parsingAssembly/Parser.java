@@ -88,11 +88,7 @@ public class Parser implements IParser {
             if(operand != null){
                 return true;
             }
-            else {
-                ErrorMessage err = new ErrorMessage(new Position(tokenObj.getLine(), tokenObj.getPos()),
-                        "\"Immediate should have an operand\" ");
-                return false;
-            }
+            
         }
         return false;
     }
@@ -202,12 +198,12 @@ public class Parser implements IParser {
             else if (relative){
                 instruction = new Instruction(mnemonic,operand,table.lookupMnemonic(mnemonic.getValue()),3);
             }
-            else if(!inherent && !immediate && !relative){
-                ErrorMessage err = new ErrorMessage(new Position(tokenObj.getLine(), tokenObj.getPos()),
-                        "\"INSTRUCTION SYNTAX ERROR\" ");
-                mnemonic.value = "ERROR ";
-                instruction = new Instruction(mnemonic,operand,table.lookupMnemonic(mnemonic.getValue()),4); // flag 4 is when an ERROR occurs
-            }
+            // else if(!inherent && !immediate && !relative){
+            //     ErrorMessage err = new ErrorMessage(new Position(tokenObj.getLine(), tokenObj.getPos()),
+            //             "\"INSTRUCTION SYNTAX ERROR\" ");
+            //     mnemonic.value = "ERROR ";
+            //     instruction = new Instruction(mnemonic,operand,table.lookupMnemonic(mnemonic.getValue()),4); // flag 4 is when an ERROR occurs
+            // }
 
         }
 
