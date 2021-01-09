@@ -64,18 +64,18 @@ public class Parser implements IParser {
             switch (tokenInt) {
                 case 1://label
                      if(Character.isUpperCase(tokenType.charAt(0))){
-                         System.out.print("This is a Label : " );
+                         //System.out.print("This is a Label : " );
                          label = new Label(tokenType);
                      }
                     break;
                 case 2: //Mnemonic
-                    System.out.print("This is a Mnemonic : " );
+                    //System.out.print("This is a Mnemonic : " );
                     mnemonic = new Mnemonic(tokenType);
                     mnemonicToken = tokenType;
                     break;
                 case 3://Operand
                     if(Character.isUpperCase(tokenType.charAt(0)) || tokenType.matches("^[0-9]*$")){
-                        System.out.print("This is a Operand : " );
+                        //System.out.print("This is a Operand : " );
                         operand = new Operand(tokenType);
                     }
                     else{
@@ -85,64 +85,61 @@ public class Parser implements IParser {
                     break;
                 case 4://Comment
                     if(tokenType.charAt(0) == ';'){
-                        System.out.print("This is a Comment : ");
+                        //System.out.print("This is a Comment : ");
                         comment = new Comment(tokenType);
                     }
                     break;
                 default:
                     break;
             }
-            System.out.println("\t\t\t"  + tokenType);
+            //System.out.println("\t\t\t"  + tokenType);
         }
         
         
-        // if(mnemonic != null){
-        //     System.out.print("line " + i + " ");
-        //     i++;
-        //     if(inherentMnemonics.containsKey(mnemonicToken)){
-        //         Instruction parseInherent = parseInherent(mnemonic, null);
-        //         String hexString = Integer.toHexString(parseInherent.getHexInt());
-        //         String mnemonicStr = parseInherent.getMnemonicStr();
-        //         System.out.println(hexString+" "+mnemonicStr);
-        //         //irList.addMachineCode(hexString);
-        //         //irList.addAssemblyCode(mnemonicStr);
-        //     }
+        if(mnemonic != null){
+            System.out.print("line " + i + " ");
+            i++;
+            if(inherentMnemonics.containsKey(mnemonicToken)){
+                Instruction parseInherent = parseInherent(mnemonic, null);
+                String hexString = Integer.toHexString(parseInherent.getHexInt());
+                String mnemonicStr = parseInherent.getMnemonicStr();
+                System.out.println(hexString+" "+mnemonicStr);
+                //irList.addMachineCode(hexString);
+                //irList.addAssemblyCode(mnemonicStr);
+            }
                 
-        //     if(immediateMnemonics.containsKey(mnemonicToken)){
-        //         Instruction parseImmediate = parseImmediate(mnemonic, operand);//immediate instruction
-        //         //System.out.println(parseImmediate.getMnemonicStr()+"*************"+Integer.toHexString(parseImmediate.getHexInt())+"*********"+parseImmediate.getOperand());
-        //         if(parseImmediate.getOperand().matches("-?(0|[1-9]\\d*)")){
-        //             int hexInt = parseImmediate.getHexInt() + parseImmediate.getIntOperand();
-        //             String hexString = Integer.toHexString(hexInt);
-        //             String instructionString = hexString + " " + parseImmediate.getMnemonicStr() + " " + parseImmediate.getOperand();
-        //             System.out.println(instructionString);
-        //            // irList.addMachineCode(hexString);
-        //            // irList.addAssemblyCode(instructionString);
-        //         }
-        //         else{
-        //             // int hexInt = parseImmediate.getHexInt() + parseImmediate.getIntOperand();
-        //              String hexString = Integer.toHexString(parseImmediate.getHexInt());
-        //              String instructionString = hexString + " " + parseImmediate.getMnemonicStr() + " " + parseImmediate.getOperand();
-        //              System.out.println(instructionString);
-        //             // irList.addMachineCode(hexString);
-        //             // irList.addAssemblyCode(instructionString);
-        //         }
-        //     }
+            if(immediateMnemonics.containsKey(mnemonicToken)){
+                Instruction parseImmediate = parseImmediate(mnemonic, operand);//immediate instruction
+                if(operand == null){
+                    String hexString = Integer.toHexString(parseImmediate.getHexInt());
+                    String instructionString = hexString + " " + parseImmediate.getMnemonicStr();
+                    System.out.println(instructionString);
+                    // irList.addMachineCode(hexString);
+                    // irList.addAssemblyCode(instructionString);
+                } else {
+                    int hexInt = parseImmediate.getHexInt() + parseImmediate.getIntOperand();
+                    String hexString = Integer.toHexString(hexInt);
+                    String instructionString = hexString + " " + parseImmediate.getMnemonicStr() + " " + parseImmediate.getOperand();
+                    System.out.println(instructionString);
+                   // irList.addMachineCode(hexString);
+                   // irList.addAssemblyCode(instructionString);
+                }
+            }
               
-        //     // if(relativeMnemonics.containsKey(mnemonicToken)){
-        //     //     Instruction parseRelative = parseRelative(mnemonic, operand);
-        //     //     int hexInt = parseRelative.getHexInt();
-        //     //     String mnemonicStr = parseRelative.getMnemonicStr();
-        //     //     int intOperand = parseRelative.getIntOperand();
-        //     //     System.out.println(hexInt+" "+mnemonicStr+" "+intOperand);
-        //     // }
+            // if(relativeMnemonics.containsKey(mnemonicToken)){
+            //     Instruction parseRelative = parseRelative(mnemonic, operand);
+            //     int hexInt = parseRelative.getHexInt();
+            //     String mnemonicStr = parseRelative.getMnemonicStr();
+            //     int intOperand = parseRelative.getIntOperand();
+            //     System.out.println(hexInt+" "+mnemonicStr+" "+intOperand);
+            // }
 
-        //     //if a token has a space do nothing
+            //if a token has a space do nothing
 
-        // } else {
-        //     //irList.addMachineCode(" ");
-        //     //irList.addAssemblyCode(" ");
-        // }
+        } else {
+            //irList.addMachineCode(" ");
+            //irList.addAssemblyCode(" ");
+        }
 
         return new LineStatement(label, instruction, comment);
     }
