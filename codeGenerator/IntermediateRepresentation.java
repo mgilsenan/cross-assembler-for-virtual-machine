@@ -16,7 +16,7 @@ public class IntermediateRepresentation {
         return machineCode;
     }
 
-    public List<String> assemblyCode(){
+    public List<String> getassemblyCode(){
         return assemblyCode;
     }
 

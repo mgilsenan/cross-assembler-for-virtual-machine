@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 
 class ParserTest {
 
@@ -37,6 +38,12 @@ class ParserTest {
         AssemblerFactory f = new AssemblerFactory(lxr,st);
         Parser p = new Parser(f);
         p.parse();
+
+        List<String> getassemblyCode = p.getassemblyCode();
+        List<String> getmachineCode = p.getmachineCode();
+        System.out.println("***********************");
+        System.out.println(getassemblyCode);
+        System.out.println(getmachineCode);
 
         System.out.println("Test Parser Finish");
     }

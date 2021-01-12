@@ -1,6 +1,11 @@
 package parsingAssembly;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+
 import SymbolTable.*;
+import codeGenerator.IntermediateRepresentation;
 import errorHandling.ErrorMessage;
 import lexicalAnalyzer.*;
 
@@ -9,13 +14,13 @@ public class Parser implements IParser {
     private IReportable errorReporter;
     private ISymbolTable table;
     private Token tokenObj;
-    //private IntermediateRepresentation irList;
+    private IntermediateRepresentation irList;
 
     public Parser(AssemblerFactory factory) {
         this.lexer = factory.getLexer();
         this.errorReporter = factory.getErrorReporter();
         this.table = factory.getSymbolTable();
-        //irList = new IntermediateRepresentation();
+        irList = new IntermediateRepresentation();
     }
 
     public AssemblyUnit parse() {
@@ -40,8 +45,7 @@ public class Parser implements IParser {
     private Instruction parseRelative(Mnemonic mnemonic, Operand operand) {
         return new Instruction(mnemonic,operand,table.lookupMnemonic(mnemonic.getValue()),3);
     }
-    
-    int i = 1;
+ 
     public LineStatement parseLineStatement() {
         Label        label = null;
         Instruction instruction = null;
@@ -95,17 +99,14 @@ public class Parser implements IParser {
             //System.out.println("\t\t\t"  + tokenType);
         }
         
-        
         if(mnemonic != null){
-            System.out.print("line " + i + " ");
-            i++;
             if(inherentMnemonics.containsKey(mnemonicToken)){
                 Instruction parseInherent = parseInherent(mnemonic, null);
                 String hexString = Integer.toHexString(parseInherent.getHexInt());
                 String mnemonicStr = parseInherent.getMnemonicStr();
                 System.out.println(hexString+" "+mnemonicStr);
-                //irList.addMachineCode(hexString);
-                //irList.addAssemblyCode(mnemonicStr);
+                irList.addMachineCode(hexString);
+                irList.addAssemblyCode(mnemonicStr);
             }
                 
             if(immediateMnemonics.containsKey(mnemonicToken)){
@@ -114,15 +115,15 @@ public class Parser implements IParser {
                     String hexString = Integer.toHexString(parseImmediate.getHexInt());
                     String instructionString = hexString + " " + parseImmediate.getMnemonicStr();
                     System.out.println(instructionString);
-                    // irList.addMachineCode(hexString);
-                    // irList.addAssemblyCode(instructionString);
+                    irList.addMachineCode(hexString);
+                    irList.addAssemblyCode(instructionString);
                 } else {
                     int hexInt = parseImmediate.getHexInt() + parseImmediate.getIntOperand();
                     String hexString = Integer.toHexString(hexInt);
                     String instructionString = hexString + " " + parseImmediate.getMnemonicStr() + " " + parseImmediate.getOperand();
                     System.out.println(instructionString);
-                   // irList.addMachineCode(hexString);
-                   // irList.addAssemblyCode(instructionString);
+                    irList.addMachineCode(hexString);
+                    irList.addAssemblyCode(instructionString);
                 }
             }
               
@@ -137,10 +138,18 @@ public class Parser implements IParser {
             //if a token has a space do nothing
 
         } else {
-            //irList.addMachineCode(" ");
-            //irList.addAssemblyCode(" ");
+            // irList.addMachineCode(" ");
+            // irList.addAssemblyCode(" ");
         }
 
         return new LineStatement(label, instruction, comment);
+    }
+
+    public List<String> getmachineCode(){
+        return irList.getmachineCode();
+    }
+    
+    public List<String> getassemblyCode(){
+        return irList.getassemblyCode();
     }
 }
